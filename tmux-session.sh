@@ -2,10 +2,11 @@
 
 clear
 
-pane_test() {
+pane_parameters() {
   until [ -z "$1"  ]  # Until all parameters used up . . .
   do
     echo
+    # get child process - mac ps doesn't have --ppid
     child=$(pgrep -P $1)
     echo -n "command: "
     if [ -z $child ]
@@ -21,11 +22,6 @@ pane_test() {
   #child=$(pgrep -P $p)
 }
 
-pane_parameters() {
-  ps -opid,ppid,args -p $1
-  echo -e "$1\n"
-}
-
 window_parameters() {
   echo $1 # session_name
   echo $2 # window_index
@@ -35,7 +31,7 @@ window_parameters() {
 
   #tmux list-panes -t $1:$2
   panes=$(tmux list-panes -t $1:$2 -F "#{pane_pid} #{pane_current_path}")
-  pane_test $panes
+  pane_parameters $panes
 }
 
 windows=$(tmux list-windows -F "#{session_name} #{window_index} #{window_name} #{window_panes} #{window_layout}")
@@ -46,9 +42,3 @@ do
   window_parameters $window
   echo
 done <<< "$windows"
-
-
- #air 1 components 2 8042,150x39,0,0{75x39,0,0,0,74x39,76,0,3}
- #air 2 ruby-tapas 1 cdbe,150x39,0,0,1
- #air 3 src 2 cd4c,150x39,0,0[150x30,0,0,4,150x8,0,31,6]
- #air 4 bash 2 a6f5,150x39,0,0[150x30,0,0,9,150x8,0,31,10]
