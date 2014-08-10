@@ -17,7 +17,8 @@ pane_parameters() {
     fi
     echo -n "directory: "
     echo "$2 "
-    shift 2
+    echo "$3 "
+    shift 3
   done
   #child=$(pgrep -P $p)
 }
@@ -30,7 +31,7 @@ window_parameters() {
   echo $5 # window_layout
 
   #tmux list-panes -t $1:$2
-  panes=$(tmux list-panes -t $1:$2 -F "#{pane_pid} #{pane_current_path}")
+  panes=$(tmux list-panes -t $1:$2 -F "#{pane_pid} #{pane_current_path} #{pane_current_command}")
   pane_parameters $panes
 }
 
