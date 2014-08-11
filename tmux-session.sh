@@ -23,16 +23,39 @@ pane_parameters() {
   #child=$(pgrep -P $p)
 }
 
-window_parameters() {
-  echo $1 # session_name
-  echo $2 # window_index
-  echo $3 # window_name
-  echo $4 # window_panes
-  echo $5 # window_layout
+pane_test() {
+  echo $@
+  echo
+  echo $1 $2 $3 $4
+  echo
+  shift 4
 
+  while [ $# -gt 2 ] ; do
+    child=$(pgrep -P $1)
+    echo
+    echo -n "command: "
+    if [ -z $child ]
+    then
+      ps -o 'args=' -p $1
+    else
+      ps -o 'args=' -p $child
+    fi
+    echo -n "directory: "
+    echo "$2 "
+    echo "$3 "
+    shift 3
+  done
+}
+
+window_parameters() {
   #tmux list-panes -t $1:$2
+  session=$1
+  name=$3
+  nr_of_panes=$4
+  layout=$5
+
   panes=$(tmux list-panes -t $1:$2 -F "#{pane_pid} #{pane_current_path} #{pane_current_command}")
-  pane_parameters $panes
+  pane_test $session $nr_of_panes $name $layout $panes
 }
 
 windows=$(tmux list-windows -F "#{session_name} #{window_index} #{window_name} #{window_panes} #{window_layout}")
