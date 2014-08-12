@@ -1,9 +1,6 @@
-#]!/bin/bash
+#!/bin/bash
 
 pane_parameters() {
-  #echo $@
-  #echo
-  echo $1 $2 $3 $4 $5
   initial_window=true
   initial_pane=true
   session=$1
@@ -20,29 +17,16 @@ pane_parameters() {
     else
       command=$(ps -o 'args=' -p $child)
     fi
+
     if [ "$command" == "-bash" ]; then
       command="cd $2"
     else
       command="cd $2 && $command"
     fi
 
-    if [ "$session" = "$last_session" ]; then
-      initial_window=false
-    fi
-    if [ "$window_index" = "$last_window" ]; then
-      initial_pane=false
-    fi
+    [ "$session" = "$last_session" ] && initial_window=false
+    [ "$window_index" = "$last_window" ] && initial_pane=false
 
-#    echo
-#    echo '###'
-#    echo initial session: $initial_session
-#    echo window index: $window_index
-#    echo last window: $last_window
-#    echo initial window: $initial_window
-#    echo initial pane: $initial_pane
-#    echo '###'
-#    echo
-#
     if [ "$initial_window" == "true" ] && [ "$initial_pane" = "true" ]; then
       echo "tmux new-session -d -n $window_name -s $session"
       initial_session=false
@@ -60,7 +44,7 @@ pane_parameters() {
     #echo $initial_pane
     #echo "$3 "
     shift 3
-  done >> ./test_session
+  done >> ./$filename
 }
 
 window_parameters() {
@@ -75,25 +59,21 @@ window_parameters() {
   pane_parameters $session $window_index $nr_of_panes $name $layout $panes
 }
 
-# clear test session file before launch
-> ./test_session
-
-#echo tmux start-server >> ./test_session
-
-if $(tmux has-session)
-then
-  echo tmux is running.
-  echo Saving session and attaching...
-  #tmux -2u att
+if ! $(tmux has-session); then
+  echo No Sessions exist, exiting.
+  exit
 fi
+
+
+timestamp=$(date "+%s")
+filename=./sessions-`date "+%F"`-${timestamp:6}.sh
+touch $filename
+echo '#!/bin/bash' >> $filename
 
 windows=$(tmux list-windows -a -F "#{session_name} #{window_index} #{window_name} #{window_panes} #{window_layout}")
 
-while read window
-do
-  #echo $window
+while read window; do
   window_parameters $window
-  echo
 done <<< "$windows"
 
-cat ./test_session
+chmod +x $filename
