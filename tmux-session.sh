@@ -1,29 +1,6 @@
 #]!/bin/bash
 
-clear
-
 pane_parameters() {
-  until [ -z "$1"  ]  # Until all parameters used up . . .
-  do
-    echo
-    # get child process - mac ps doesn't have --ppid
-    child=$(pgrep -P $1)
-    echo -n "command: "
-    if [ -z $child ]
-    then
-      ps -o 'args=' -p $1
-    else
-      ps -o 'args=' -p $child
-    fi
-    echo -n "directory: "
-    echo "$2 "
-    #echo "$3 "
-    shift 3
-  done
-  #child=$(pgrep -P $p)
-}
-
-pane_test() {
   #echo $@
   #echo
   echo $1 $2 $3 $4 $5
@@ -31,6 +8,7 @@ pane_test() {
   initial_pane=true
   session=$1
   window_index=$2
+  window_name=$4
   layout=$5
   shift 5
 
@@ -66,21 +44,21 @@ pane_test() {
 #    echo
 #
     if [ "$initial_window" == "true" ] && [ "$initial_pane" = "true" ]; then
-      echo "tmux new-session -d -s $session"
+      echo "tmux new-session -d -n $window_name -s $session"
       initial_session=false
     elif [ "$initial_window" == "true" ] || [ "$initial_pane" = "true" ]; then
-      echo "tmux new-window -d -t $session:$window_index"
+      echo "tmux new-window -d -n $window_name -t $session:$window_index"
     else
       echo "tmux split-window -d -t $session:$window_index"
     fi
+    # need pane index for send-keys
+    #echo tmux send-keys -t $session:$window_index \"$command\" C-m
+    echo tmux select-layout -t $session:$window_index \"$layout\" \> /dev/null
     last_session=$session
     last_window=$window_index
-    #echo tmux send-keys -t $session:$window_index \"$command\" C-m
-    #echo $layout
     #echo $last_window
     #echo $initial_pane
     #echo "$3 "
-    echo tmux select-layout -t $last_session:$last_window \"$layout\" \> /dev/null
     shift 3
   done >> ./test_session
 }
@@ -94,7 +72,7 @@ window_parameters() {
   layout=$5
 
   panes=$(tmux list-panes -t $1:$2 -F "#{pane_pid} #{pane_current_path} #{pane_current_command}")
-  pane_test $session $window_index $nr_of_panes $name $layout $panes
+  pane_parameters $session $window_index $nr_of_panes $name $layout $panes
 }
 
 # clear test session file before launch
