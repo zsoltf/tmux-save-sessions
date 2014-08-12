@@ -1,6 +1,15 @@
 #!/bin/bash
 
-pane_parameters() {
+# __ __|                              ___|                    _)
+#    |  __ `__ \   |   | \ \  /     \___ \    _ \   __|   __|  |   _ \   __ \    __|
+#    |  |   |   |  |   |  `  <            |   __/ \__ \ \__ \  |  (   |  |   | \__ \
+#   _| _|  _|  _| \__,_|  _/\_\     _____/  \___| ____/ ____/ _| \___/  _|  _| ____/
+#
+####################################################################################
+# save the windows, panes and layouts
+# of all running tmux sessions to a bash script
+
+construct_panes() {
   initial_window=true
   initial_pane=true
   session=$1
@@ -10,6 +19,7 @@ pane_parameters() {
   shift 5
 
   while [ $# -gt 2 ] ; do
+    # get child process of pane
     child=$(pgrep -P $1)
     if [ -z $child ]
     then
@@ -18,6 +28,7 @@ pane_parameters() {
       command=$(ps -o 'args=' -p $child)
     fi
 
+    # TODO: replace "cd $2" with -c flag on tmux1.9
     if [ "$command" == "-bash" ]; then
       command="cd $2"
     else
@@ -35,19 +46,16 @@ pane_parameters() {
     else
       echo "tmux split-window -d -t $session:$window_index"
     fi
-    # need pane index for send-keys
-    #echo tmux send-keys -t $session:$window_index \"$command\" C-m
+    # $3 - pane index
+    echo tmux send-keys -t $session:$window_index.$3 \"$command\" C-m
     echo tmux select-layout -t $session:$window_index \"$layout\" \> /dev/null
     last_session=$session
     last_window=$window_index
-    #echo $last_window
-    #echo $initial_pane
-    #echo "$3 "
     shift 3
   done >> ./$filename
 }
 
-window_parameters() {
+construct_window() {
   #tmux list-panes -t $1:$2
   session=$1
   window_index=$2
@@ -55,25 +63,34 @@ window_parameters() {
   nr_of_panes=$4
   layout=$5
 
-  panes=$(tmux list-panes -t $1:$2 -F "#{pane_pid} #{pane_current_path} #{pane_current_command}")
-  pane_parameters $session $window_index $nr_of_panes $name $layout $panes
+  panes=$(tmux list-panes -t $1:$2 -F "#{pane_pid} #{pane_current_path} #{pane_index}")
+  construct_panes $session $window_index $nr_of_panes $name $layout $panes
 }
 
-if ! $(tmux has-session); then
-  echo No Sessions exist, exiting.
-  exit
-fi
+setup() {
+  if ! $(tmux has-session 2>/dev/null); then
+    echo No Sessions exist, exiting.
+    exit
+  fi
+  timestamp=$(date "+%s")
+  filename=./sessions-`date "+%F"`-${timestamp:6}.sh
+  touch $filename
+  echo '#!/bin/bash' >> $filename
+  echo 'if $(tmux has-session 2>/dev/null); then tmux att; exit; fi' >> $filename
+}
 
+teardown() {
+  echo 'tmux att' >> $filename
+  chmod +x $filename
+}
 
-timestamp=$(date "+%s")
-filename=./sessions-`date "+%F"`-${timestamp:6}.sh
-touch $filename
-echo '#!/bin/bash' >> $filename
+save_sessions() {
+  windows=$(tmux list-windows -a -F "#{session_name} #{window_index} #{window_name} #{window_panes} #{window_layout}")
+  while read window; do
+    construct_window $window
+  done <<< "$windows"
+}
 
-windows=$(tmux list-windows -a -F "#{session_name} #{window_index} #{window_name} #{window_panes} #{window_layout}")
-
-while read window; do
-  window_parameters $window
-done <<< "$windows"
-
-chmod +x $filename
+setup
+save_sessions
+teardown
