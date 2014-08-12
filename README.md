@@ -13,7 +13,7 @@ All sessions, windows, panes, running commands and layouts get saved as a bash s
 
 To restore a session, execute the generated script.
 
-      ./session-2014-08-12-4423.sh
+      ./sessions-2014-08-12-4423.sh
 
 Run `./tmux-save-sessions` multiple times to save different snapshots of your sessions.
 
