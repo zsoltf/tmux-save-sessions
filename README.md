@@ -19,7 +19,7 @@ Run `./tmux-save-sessions` multiple times to save different snapshots of your se
 
 ### Requirements
 
-    tmux 1.8
+    tmux 1.9
     bash
 
 
