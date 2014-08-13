@@ -28,7 +28,6 @@ construct_panes() {
       command=$(ps -o 'args=' -p $child)
     fi
 
-    # TODO: replace "cd $2" with -c flag on tmux1.9
     if [ "$command" == "-bash" ]; then
       command=""
     else
