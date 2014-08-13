@@ -30,24 +30,24 @@ construct_panes() {
 
     # TODO: replace "cd $2" with -c flag on tmux1.9
     if [ "$command" == "-bash" ]; then
-      command="cd $2"
+      command=""
     else
-      command="cd $2 && $command"
+      command="$command"
     fi
 
     [ "$session" = "$last_session" ] && initial_window=false
     [ "$window_index" = "$last_window" ] && initial_pane=false
 
     if [ "$initial_window" == "true" ] && [ "$initial_pane" = "true" ]; then
-      echo "tmux new-session -d -n $window_name -s $session"
+      echo "tmux new-session -d -n $window_name -s $session -c "$2""
       initial_session=false
     elif [ "$initial_window" == "true" ] || [ "$initial_pane" = "true" ]; then
-      echo "tmux new-window -d -n $window_name -t $session:$window_index"
+      echo "tmux new-window -d -n $window_name -t $session:$window_index -c "$2""
     else
-      echo "tmux split-window -d -t $session:$window_index"
+      echo "tmux split-window -d -t $session:$window_index -c "$2""
     fi
     # $3 - pane index
-    echo tmux send-keys -t $session:$window_index.$3 \"$command\" C-m
+    [ "$command" ] && echo tmux send-keys -t $session:$window_index.$3 \"$command\" C-m
     echo tmux select-layout -t $session:$window_index \"$layout\" \> /dev/null
     last_session=$session
     last_window=$window_index
@@ -74,6 +74,8 @@ setup() {
   fi
   timestamp=$(date "+%s")
   filename=./sessions-`date "+%F"`-${timestamp:6}.sh
+  sessions=$(tmux list-sessions -F "#{session_name}")
+  echo $sessions
   touch $filename
   echo '#!/bin/bash' >> $filename
   echo 'if $(tmux has-session 2>/dev/null); then tmux att; exit; fi' >> $filename
