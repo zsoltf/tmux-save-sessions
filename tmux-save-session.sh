@@ -31,7 +31,7 @@ construct_panes() {
     case "$command" in
       sudo*|*bash*)
         command="echo $command";;
-      vim*|top)
+      vim*|top|tail*)
         command="$command";;
       *)
         command="echo $command";;
