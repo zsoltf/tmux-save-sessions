@@ -78,11 +78,11 @@ setup() {
   echo $sessions
   touch $filename
   echo '#!/bin/bash' >> $filename
-  echo 'if $(tmux has-session 2>/dev/null); then tmux att; exit; fi' >> $filename
+  echo 'if $(tmux has-session 2>/dev/null); then tmux -2u att; exit; fi' >> $filename
 }
 
 teardown() {
-  echo 'tmux att' >> $filename
+  echo 'tmux -2u att' >> $filename
   chmod +x $filename
 }
 
