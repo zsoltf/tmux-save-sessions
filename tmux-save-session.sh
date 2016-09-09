@@ -28,11 +28,14 @@ construct_panes() {
       command=$(ps -o 'args=' -p $child)
     fi
 
-    if [ "$command" == "-bash" ]; then
-      command=""
-    else
-      command="$command"
-    fi
+    case "$command" in
+      sudo*|*bash*)
+        command="echo $command";;
+      vim*|top)
+        command="$command";;
+      *)
+        command="echo $command";;
+    esac
 
     [ "$session" = "$last_session" ] && initial_window=false
     [ "$window_index" = "$last_window" ] && initial_pane=false
