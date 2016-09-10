@@ -49,7 +49,7 @@ construct_panes() {
       echo "tmux split-window -t $session:$window_index -c "$2""
     fi
     # $3 - pane index
-    echo "sleep 0.1"
+    echo "sleep 0.2"
     [ "$command" ] && echo tmux send-keys -t $session:$window_index.$3 \"$command\" Enter
     echo tmux select-layout -t $session:$window_index \"$layout\" \> /dev/null
     last_session=$session
